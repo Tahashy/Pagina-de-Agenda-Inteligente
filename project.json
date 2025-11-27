@@ -1,0 +1,160 @@
+{
+  "name": "SST App",
+  "version": "1.0.0",
+  "description": "Sistema de Seguridad y Salud en el Trabajo (SST) con Streamlit y Supabase",
+  "author": "SST Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "python": {
+    "version": "3.12",
+    "environment": "venv"
+  },
+  "dependencies": {
+    "streamlit": ">=1.36,<2.0",
+    "streamlit-option-menu": "0.4.0",
+    "supabase": "latest",
+    "python-dotenv": "latest",
+    "pandas": "latest",
+    "plotly": "latest",
+    "openpyxl": "latest",
+    "reportlab": "latest",
+    "kaleido": "optional (for chart image export to PDF)"
+  },
+  "project_structure": {
+    "root": "d:\\sst_app",
+    "app": {
+      "main": "app.py",
+      "description": "Punto de entrada principal de Streamlit"
+    },
+    "pages": {
+      "path": "pages/",
+      "files": {
+        "Capacitaciones.py": "Gestión y registro de capacitaciones del personal",
+        "Documentos.py": "Gestión de documentos y archivos (upload/descarga)",
+        "EPP.py": "Control de Equipos de Protección Personal con fecha de vencimiento",
+        "Incidentes.py": "Registro y listado de incidentes con evaluación de riesgo",
+        "Inspecciones.py": "Registro de inspecciones de seguridad",
+        "Reportes.py": "Panel de análisis con métricas, gráficos y exportación PDF/Excel"
+      }
+    },
+    "utils": {
+      "path": "utils/",
+      "files": {
+        "__init__.py": "Inicializador del paquete utils",
+        "helpers.py": "Funciones auxiliares generales",
+        "validations.py": "Validaciones de campos (email, fecha, riesgo, etc.)",
+        "report_pdf.py": "Generación de reportes en formato PDF con tablas y gráficos",
+        "report_excel.py": "Generación de reportes en formato Excel con múltiples hojas",
+        "validations.pyi": "Stub file para resolución de tipos"
+      }
+    },
+    "config": {
+      "supabase_client.py": "Inicialización del cliente Supabase y configuración de almacenamiento",
+      "requirements.txt": "Dependencias del proyecto",
+      "env_file": "Variables de entorno (SUPABASE_URL, SUPABASE_KEY, BUCKET_NAME)"
+    }
+  },
+  "features": {
+    "authentication": "Via Supabase (environment variables)",
+    "database": {
+      "provider": "Supabase (PostgreSQL)",
+      "tables": [
+        "incidentes",
+        "inspecciones",
+        "epp",
+        "capacitaciones",
+        "documentos"
+      ]
+    },
+    "storage": {
+      "provider": "Supabase Storage",
+      "bucket_name": "sst-documentos",
+      "file_types": "evidencias de incidentes, inspecciones, documentos"
+    },
+    "reports": {
+      "pdf": {
+        "format": "ReportLab",
+        "includes": "tablas alineadas, gráficos (si motor de render disponible), métricas consolidadas"
+      },
+      "excel": {
+        "format": "openpyxl (Pandas ExcelWriter)",
+        "sheets": ["Resumen", "Incidentes", "EPP", "Capacitaciones", "Incidentes_por_area"],
+        "features": "normalización de datetimes con zona"
+      }
+    },
+    "analytics": {
+      "dashboard": true,
+      "metrics": [
+        "Total incidentes",
+        "Capacitaciones registradas",
+        "Registros EPP",
+        "Tendencia de incidentes por mes",
+        "Riesgos detectados (nivel >= 15)",
+        "EPP por vencer (próximos 30 días)",
+        "Incidentes por área"
+      ],
+      "filters": ["Rango de fechas (inicio - fin)"]
+    },
+    "validations": {
+      "incident_risk": "Valor >= 15 se considera alto riesgo",
+      "fields": [
+        "descripción (no vacía)",
+        "email (formato válido)",
+        "fecha (formato YYYY-MM-DD)",
+        "número (valor numérico)",
+        "archivo (tipo permitido)"
+      ]
+    }
+  },
+  "api_endpoints": {
+    "supabase_url": "Configurado en .env (SUPABASE_URL)",
+    "supabase_key": "Configurado en .env (SUPABASE_KEY)",
+    "operations": [
+      "SELECT * FROM table",
+      "INSERT INTO table VALUES (...)",
+      "UPDATE table SET ... WHERE ...",
+      "DELETE FROM table WHERE ...",
+      "Storage upload/download de evidencias"
+    ]
+  },
+  "environment_variables": {
+    "SUPABASE_URL": "URL de la instancia Supabase",
+    "SUPABASE_KEY": "Clave pública de Supabase",
+    "BUCKET_NAME": "Nombre del bucket en Supabase Storage (default: sst-documentos)"
+  },
+  "recent_fixes": [
+    {
+      "issue": "streamlit-option-menu requería streamlit >= 1.36",
+      "solution": "Actualizar requirements.txt a streamlit>=1.36,<2.0",
+      "status": "✓ Resuelto"
+    },
+    {
+      "issue": "Error de Excel con datetimes con zona: 'Excel does not support datetimes with timezones'",
+      "solution": "Añadir función _ensure_naive_datetimes en utils/report_excel.py para normalizar datetimes antes de escribir",
+      "status": "✓ Resuelto"
+    }
+  ],
+  "deployment": {
+    "platform": "Streamlit Cloud (recomendado) o servidor local",
+    "commands": {
+      "run_local": "streamlit run app.py",
+      "requirements_install": "pip install -r requirements.txt"
+    }
+  },
+  "testing": {
+    "unit_tests": "No implementados aún",
+    "manual_testing": "Probar cada página con datos de prueba, exportar PDF/Excel, verificar filtros"
+  },
+  "future_enhancements": [
+    "Guardar reportes generados en Supabase Storage",
+    "Autenticación de usuarios con roles (admin, supervisor, operario)",
+    "Notificaciones de riesgos altos",
+    "Exportación de reportes en formatos adicionales (CSV, JSON)",
+    "Integración con correo electrónico para alertas",
+    "Dashboard de cumplimiento normativo"
+  ],
+  "notes": "Sistema operativo: Windows. Python 3.12. Última actualización: Noviembre 26, 2025."
+}
