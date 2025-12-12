@@ -12,18 +12,17 @@ def mostrar(usuario):
     """Dashboard ejecutivo con métricas avanzadas"""
     
     # Header con animación
-    st.markdown("""
-        <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                    padding: 2rem; border-radius: 15px; margin-bottom: 2rem;
-                    box-shadow: 0 10px 30px rgba(0,0,0,0.2);'>
-            <h1 style='color: white; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);'>
-                📊 Dashboard Ejecutivo SST
-            </h1>
-            <p style='color: #e0e7ff; margin: 0.5rem 0 0 0; font-size: 1.1rem;'>
-                Vista en tiempo real | Actualizado: {datetime.now().strftime('%d/%m/%Y %H:%M')}
-            </p>
-        </div>
-    """.format(datetime=datetime), unsafe_allow_html=True)
+    st.markdown(f"""
+    <div style='background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 15px; margin-bottom: 1.5rem;'>
+        <h1 style='color: white; font-weight: 800; margin: 0; font-size: 2.2rem;'>
+            📊 Dashboard Ejecutivo SST
+        </h1>
+        <p style='color: #e0e7ff; margin: 0.5rem 0 0 0; font-size: 1.1rem;'>
+            Vista en tiempo real | Actualizado: {datetime.now().strftime('%d/%m/%Y %H:%M')}
+        </p>
+    </div>
+""", unsafe_allow_html=True)
+
     
     # Filtros de fecha
     col_f1, col_f2, col_f3 = st.columns([2, 2, 1])
