@@ -106,32 +106,46 @@ def inventario_epp(usuario):
                         codigo_epp = f"EPP-{tipo_epp[:3].upper()}-{numero_lote or datetime.now().strftime('%Y%m%d')}"
                         # Insert simple registro en tabla 'epp' como entrega/registro (puedes crear una tabla separada inventory)
                         epp_record = {
+                            'trabajador': 'STOCK-ALMACEN',
                             'tipo_epp': tipo_epp,
-                            'marca': marca,
-                            'modelo': modelo,
-                            'talla': talla,
-                            'color': color,
+                            'fecha_entrega': fecha_adquisicion.isoformat(),
+                            'fecha_vencimiento': fecha_vencimiento.isoformat(),
+                            'estado': 'Vigente',
+                            'numero_serie': numero_lote or '',
+                            'condicion': 'Nuevo',
+                            'evidencia_entrega': None,
+                            'usuario_id': usuario['id'],
+                            'marca': marca or '',
+                            'modelo': modelo or '',
+                            'talla': str(talla) if talla else 'N/A',
+                            'color': color or '',
                             'categoria': categoria,
-                            'cantidad': cantidad_stock,
-                            'cantidad_minima': cantidad_minima,
+                            'cantidad': int(cantidad_stock),
+                            'cantidad_minima': int(cantidad_minima),
                             'costo_unitario': float(costo_unitario),
                             'vida_util_meses': int(vida_util_meses),
-                            'proveedor': proveedor,
-                            'numero_lote': numero_lote,
+                            'proveedor': proveedor or '',
+                            'numero_lote': numero_lote or '',
                             'fecha_adquisicion': fecha_adquisicion.isoformat(),
-                            'fecha_vencimiento': fecha_vencimiento.isoformat(),
-                            'observaciones': observaciones,
                             'codigo': codigo_epp,
-                            'usuario_id': usuario['id']
-                        }
+                            'cantidad_entregada': 1,
+                            'marca_modelo': f"{marca} {modelo}".strip(),
+                            'tipo_entrega': None,
+                            'trabajador_id': None,
+                            'observaciones': observaciones or ''
+            }
+                        
                         result = supabase.table('epp').insert(epp_record).execute()
-                        if not (result and getattr(result, 'data', None)):
-                            st.error("Error al insertar inventario: " + str(getattr(result, 'error', 'sin detalles')))
-                        else:
+                        if result.data :
                             st.success(f"✅ EPP agregado al inventario. Código: {codigo_epp}")
                             st.info(f"📦 Tipo: {tipo_epp} - Cant: {cantidad_stock} - Costo total: S/ {cantidad_stock * costo_unitario:.2f}")
+                        else:
+                            st.error("Error agregando al inventario: " + str(getattr(result, 'error', 'sin detalles')))
+                            
                     except Exception as e:
-                        st.error(f"Error: {e}")
+                        st.error(f"Error: {str(e)}")
+                        import traceback
+                        st.code(traceback.format_exc())
 
     # Mostrar inventario actual
     st.markdown("---")
@@ -389,7 +403,8 @@ def analisis_epp(usuario):
             return
         df = pd.DataFrame(epp_registros)
         # Top tipos
-        top = df['tipo_epp'].value_counts().reset_index().rename(columns={'index':'tipo_epp','tipo_epp':'count'})
+        top = df['tipo_epp'].value_counts().reset_index()
+        top.columns = ['tipo_epp', 'count']
         fig = px.bar(top.head(10), x='tipo_epp', y='count', title='Top Tipos de EPP Entregados')
         st.plotly_chart(fig, use_container_width=True)
         # Exportar todo

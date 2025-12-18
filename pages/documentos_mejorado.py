@@ -9,6 +9,7 @@ from supabase_client import supabase
 import os
 from dotenv import load_dotenv
 import io
+import re
 
 load_dotenv()
 
@@ -102,15 +103,10 @@ def subir_documento(usuario):
             help="Formatos permitidos: PDF, Word, Excel"
         )
         
-        observaciones = st.text_area(
-            "Observaciones",
-            placeholder="Descripción del documento",
-            height=100
-        )
-        
         st.markdown("---")
         
         submitted = st.form_submit_button("✅ Subir Documento", type="primary")
+        
         
         if submitted:
             if not all([titulo, tipo_documento, version, archivo]):
@@ -118,18 +114,23 @@ def subir_documento(usuario):
                 return
             
             try:
+                import re
                 # Subir archivo
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                nombre_archivo = f"{timestamp}_{archivo.name}"
+                nombre_limpio = re.sub(r'[^a-zA-Z0-9_.-]', '_', archivo.name)
+                nombre_limpio=nombre_limpio.replace("__ ","_").strip('_')
+                nombre_archivo = f"{timestamp}_{nombre_limpio}"
                 ruta = f"documentos/{nombre_archivo}"
                 
-                supabase.storage.from_(os.getenv("BUCKET_NAME")).upload(
-                    ruta,
-                    archivo.getvalue(),
-                    file_options={"content-type": archivo.type}
-                )
+                bucket_name = "sst-documentos"
                 
-                archivo_url = supabase.storage.from_(os.getenv("BUCKET_NAME")).get_public_url(ruta)
+                st.info(f"⏳ Subiendo a {bucket_name}/{ruta}")
+                
+                upload_response = supabase.storage.from_(bucket_name).upload(ruta, archivo.getvalue(),file_options={"content-type","upsert": "true"})
+                
+                archivo_url = supabase.storage.from_(bucket_name).get_public_url(ruta)
+                
+                st.success(f"✅ Archivo subido correctamente: {archivo_url}")
                 
                 # Insertar documento
                 documento_data = {
@@ -144,17 +145,25 @@ def subir_documento(usuario):
                     'estado': estado_documento,
                     'responsable_id': usuario['id'],
                     'aprobado': aprobado,
-                    'keywords': palabras_clave,
-                    'observaciones': observaciones
+                    'keywords': palabras_clave or '',
+                    'observaciones': observaciones or ''
                 }
+                
+                st.info("⏳ Registrando documento en la base de datos...")
+                result = supabase.table('documentos_sst').insert(documento_data).execute()
                 
                 supabase.table('documentos_sst').insert(documento_data).execute()
                 
-                st.success(f"✅ Documento '{titulo}' subido exitosamente")
-                st.balloons()
+                if result.data:
+                    st.success(f"✅ Documento '{titulo}' registrado correctamente.")
+                    st.balloons()
+                else:
+                    st.error("❌ Error al registrar el documento en la base de datos.")
                 
             except Exception as e:
-                st.error(f"❌ Error: {e}")
+                st.error(f"❌ Error: {str(e)}")
+                import traceback
+                st.code(traceback.format_exc())
 
 def repositorio_documentos(usuario):
     """Repositorio de documentos"""
